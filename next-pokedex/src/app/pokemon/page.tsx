@@ -1,3 +1,5 @@
+// src/app/pokemon/page.tsx
+
 import { Suspense } from "react";
 import { Loading } from "@/components/loading";
 import { getProcessedPokemonList } from "@/lib/pokeapi";
