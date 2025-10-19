@@ -1,3 +1,5 @@
+// src/components/search-form.tsx
+
 "use client";
 
 import { useState } from 'react';
@@ -30,7 +32,7 @@ export function SearchForm({ initialQuery = '' }: SearchFormProps) {
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="ポケモン名を入力"
+        placeholder="ポケモンの名前を入力(日本語・英語対応)"
         className="flex-1"
       />
 

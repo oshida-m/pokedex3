@@ -91,6 +91,13 @@ export const typeTranslations: Record<string, string> = {
   fairy: 'フェアリー',
 };
 
+// 特性名の日本語変換テーブル
+export const abilityTranslations: Record<string, string> = {
+  overgrow: 'しんりょく',
+  chlorophyll: 'ようりょくそ',
+  // 他に必要な特性はここに追加してください
+};
+
 /**
  * ポケモン一覧を処理済みデータとして取得する
  */
@@ -118,6 +125,18 @@ export async function getProcessedPokemonList(
       const types = detail.types.map((t) => t.type.name);
       const imageUrl = getPokemonImageUrl(detail.sprites);
 
+      // abilitiesをPromise.allにしてawaitする必要は通常ありませんが、説明取得を非同期にする場合は必要です
+      // 今回は説明は空文字で同期処理
+      const abilities = detail.abilities.map((a) => {
+        const jpName = abilityTranslations[a.ability.name] ?? a.ability.name;
+        return {
+          name: a.ability.name,
+          japaneseName: jpName,
+          description: '',
+          isHidden: a.is_hidden,
+        };
+      });
+
       return {
         id: detail.id,
         name: detail.name,
@@ -126,7 +145,7 @@ export async function getProcessedPokemonList(
         types,
         height: detail.height / 10,
         weight: detail.weight / 10,
-        abilities: [], // 必要なら加工
+        abilities,
         imageUrl,
       };
     })
@@ -157,6 +176,16 @@ export async function getProcessedPokemon(id: number): Promise<ProcessedPokemon>
   const types = detail.types.map((t) => t.type.name);
   const imageUrl = getPokemonImageUrl(detail.sprites);
 
+  const abilities = detail.abilities.map((a) => {
+    const jpName = abilityTranslations[a.ability.name] ?? a.ability.name;
+    return {
+      name: a.ability.name,
+      japaneseName: jpName,
+      description: '',
+      isHidden: a.is_hidden,
+    };
+  });
+
   return {
     id: detail.id,
     name: detail.name,
@@ -165,7 +194,7 @@ export async function getProcessedPokemon(id: number): Promise<ProcessedPokemon>
     types,
     height: detail.height / 10,
     weight: detail.weight / 10,
-    abilities: [], // 必要なら加工
+    abilities,
     imageUrl,
   };
 }

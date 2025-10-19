@@ -1,3 +1,5 @@
+// src/components/ui/pagination.tsx
+
 "use client";
 
 import * as React from "react"
@@ -8,7 +10,7 @@ import {
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 
 type PaginationProps = {
   currentPage: number
@@ -132,7 +134,6 @@ function PaginationPrevious({
       aria-label="Go to previous page"
       size="default"
       className={cn("gap-1 px-2.5 sm:pl-2.5", className)}
-      disabled={disabled}
       {...props}
     />
   )
@@ -153,7 +154,6 @@ function PaginationNext({
       aria-label="Go to next page"
       size="default"
       className={cn("gap-1 px-2.5 sm:pr-2.5", className)}
-      disabled={disabled}
       {...props}
     />
   )
