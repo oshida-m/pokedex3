@@ -54,7 +54,7 @@ export default async function PokemonDetailPage({ params }: Props) {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="font-medium">分類:</span>
-                  <span>{pokemon.genus || '???'}</span>
+                  <span>{pokemon.genus || '分類なし'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium">高さ:</span>
@@ -85,9 +85,17 @@ export default async function PokemonDetailPage({ params }: Props) {
             {/* 特性 */}
             <div>
               <h2 className="text-lg font-semibold mb-2">特性</h2>
-              <ul className="list-disc ml-5 space-y-1">
+              <ul className="list-disc ml-5 space-y-2">
                 {pokemon.abilities.map((ability) => (
-                  <li key={ability.name}>{ability.name}</li>
+                  <li key={ability.name}>
+                    <div>
+                      {ability.japaneseName}
+                      {ability.isHidden && '（隠れ特性）'}
+                    </div>
+                    <div className="text-sm text-gray-600 ml-2">
+                      {ability.description || '説明なし'}
+                    </div>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -112,7 +120,7 @@ export default async function PokemonDetailPage({ params }: Props) {
           )}
         </div>
 
-        {/* 一覧へボタンを右下に固定 */}
+        {/* 一覧へボタン */}
         <div className="fixed bottom-6 right-6">
           <Link
             href="/pokemon"

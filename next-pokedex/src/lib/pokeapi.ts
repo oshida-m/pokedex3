@@ -7,69 +7,15 @@ import type {
   ProcessedPokemon,
   PaginationInfo,
   PokemonSpeciesDetail,
+  AbilityDetail,
+  ProcessedAbility,
 } from './types';
 
 const BASE_URL = 'https://pokeapi.co/api/v2';
 
 /**
- * ポケモン一覧を取得する
+ * タイプの日本語訳マッピング
  */
-export async function fetchPokemonList(
-  limit: number = 20,
-  offset: number = 0
-): Promise<PokemonListResponse> {
-  const res = await fetch(`${BASE_URL}/pokemon?limit=${limit}&offset=${offset}`);
-  if (!res.ok) {
-    throw new Error('Failed to fetch Pokemon list');
-  }
-  return res.json();
-}
-
-/**
- * 個別のポケモン詳細情報を取得する
- */
-export async function fetchPokemon(idOrName: string | number): Promise<Pokemon> {
-  const res = await fetch(`${BASE_URL}/pokemon/${idOrName}`);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch Pokemon detail for ${idOrName}`);
-  }
-  return res.json();
-}
-
-/**
- * ポケモン種別の詳細情報を取得する（日本語名・分類など）
- */
-export async function fetchPokemonSpecies(idOrName: string | number): Promise<PokemonSpeciesDetail> {
-  const res = await fetch(`${BASE_URL}/pokemon-species/${idOrName}`);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch Pokemon species for ${idOrName}`);
-  }
-  return res.json();
-}
-
-/**
- * 多言語名前配列から日本語名を取得する
- */
-export function getJapaneseName(names: Name[]): string {
-  const nameObj = names.find(
-    (n) => n.language.name === 'ja-Hrkt' || n.language.name === 'ja'
-  );
-  return nameObj ? nameObj.name : '不明';
-}
-
-/**
- * ポケモンの画像URLを取得する
- */
-export function getPokemonImageUrl(sprites: Pokemon['sprites']): string {
-  return (
-    sprites.other['official-artwork']?.front_default ||
-    sprites.other.home?.front_default ||
-    sprites.front_default ||
-    '/images/dummy-pokemon.png' // フォールバック画像
-  );
-}
-
-// タイプ名の日本語変換テーブル
 export const typeTranslations: Record<string, string> = {
   normal: 'ノーマル',
   fire: 'ほのお',
@@ -91,12 +37,72 @@ export const typeTranslations: Record<string, string> = {
   fairy: 'フェアリー',
 };
 
-// 特性名の日本語変換テーブル
-export const abilityTranslations: Record<string, string> = {
-  overgrow: 'しんりょく',
-  chlorophyll: 'ようりょくそ',
-  // 他に必要な特性はここに追加してください
-};
+/**
+ * ポケモン一覧を取得する
+ */
+export async function fetchPokemonList(
+  limit: number = 20,
+  offset: number = 0
+): Promise<PokemonListResponse> {
+  const res = await fetch(`${BASE_URL}/pokemon?limit=${limit}&offset=${offset}`);
+  if (!res.ok) {
+    throw new Error('Failed to fetch Pokemon list');
+  }
+  return res.json();
+}
+
+/**
+ * 個別のポケモン詳細情報を取得する
+ */
+export async function fetchPokemon(idOrName: string | number): Promise<Pokemon> {
+  const res = await fetch(`${BASE_URL}/pokemon/${idOrName}`, { cache: 'no-store' });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch Pokemon detail for ${idOrName}`);
+  }
+  return res.json();
+}
+
+/**
+ * ポケモン種別の詳細情報を取得する（日本語名・分類など）
+ */
+export async function fetchPokemonSpecies(idOrName: string | number): Promise<PokemonSpeciesDetail> {
+  const res = await fetch(`${BASE_URL}/pokemon-species/${idOrName}`);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch Pokemon species for ${idOrName}`);
+  }
+  return res.json();
+}
+
+/**
+ * 特性詳細情報を取得する（日本語名・説明など）
+ */
+export async function fetchAbilityDetail(abilityUrl: string): Promise<AbilityDetail> {
+  const res = await fetch(abilityUrl);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch ability detail from ${abilityUrl}`);
+  }
+  return res.json();
+}
+
+/**
+ * 多言語名前配列から日本語名を取得する（カタカナひらがな両対応）
+ */
+export function getJapaneseName(names: Name[]): string {
+  const nameObj = names.find((n) => n.language.name === 'ja-Hrkt') || names.find((n) => n.language.name === 'ja');
+  return nameObj ? nameObj.name : '不明';
+}
+
+/**
+ * ポケモンの画像URLを取得する
+ */
+export function getPokemonImageUrl(sprites: Pokemon['sprites']): string {
+  return (
+    sprites.other['official-artwork']?.front_default ||
+    sprites.other.home?.front_default ||
+    sprites.front_default ||
+    '/images/dummy-pokemon.png' // フォールバック画像
+  );
+}
 
 /**
  * ポケモン一覧を処理済みデータとして取得する
@@ -110,7 +116,6 @@ export async function getProcessedPokemonList(
 }> {
   const offset = (page - 1) * limit;
   const listData = await fetchPokemonList(limit, offset);
-
   const totalPages = Math.ceil(listData.count / limit);
 
   const pokemonDetails = await Promise.all(
@@ -118,21 +123,50 @@ export async function getProcessedPokemonList(
       const detail = await fetchPokemon(item.name);
       const species = await fetchPokemonSpecies(detail.id);
 
-      const japaneseName = getJapaneseName(species.names);
-      const genus =
-        species.genera.find((g) => g.language.name === 'ja')?.genus ?? '不明';
+      const abilityDetails = await Promise.all(
+        detail.abilities.map((a) => fetchAbilityDetail(a.ability.url))
+      );
 
+      const japaneseName = getJapaneseName(species.names);
+      const genus = species.genera.find((g) => g.language.name === 'ja')?.genus ?? '不明';
       const types = detail.types.map((t) => t.type.name);
       const imageUrl = getPokemonImageUrl(detail.sprites);
 
-      // abilitiesをPromise.allにしてawaitする必要は通常ありませんが、説明取得を非同期にする場合は必要です
-      // 今回は説明は空文字で同期処理
-      const abilities = detail.abilities.map((a) => {
-        const jpName = abilityTranslations[a.ability.name] ?? a.ability.name;
+      const abilities: ProcessedAbility[] = detail.abilities.map((a, idx) => {
+        const abilityDetail = abilityDetails[idx];
+
+        // 日本語説明文を優先的に取得
+        let description =
+          abilityDetail.effect_entries.find((e) => e.language.name === 'ja')?.short_effect;
+
+        if (!description) {
+          description =
+            abilityDetail.effect_entries.find((e) => e.language.name === 'ja')?.effect;
+        }
+
+        if (!description) {
+          const flavorEntry = abilityDetail.flavor_text_entries.find((e) => e.language.name === 'ja');
+          if (flavorEntry) {
+            description = flavorEntry.flavor_text.replace(/\n|\f/g, ' ');
+          }
+        }
+
+        // 日本語がなければ英語を使う
+        if (!description) {
+          description =
+            abilityDetail.effect_entries.find((e) => e.language.name === 'en')?.short_effect;
+        }
+
+        if (!description) {
+          description = '説明なし';
+        }
+
+        const jpName = getJapaneseName(abilityDetail.names);
+
         return {
           name: a.ability.name,
           japaneseName: jpName,
-          description: '',
+          description,
           isHidden: a.is_hidden,
         };
       });
@@ -169,19 +203,48 @@ export async function getProcessedPokemon(id: number): Promise<ProcessedPokemon>
   const detail = await fetchPokemon(id);
   const species = await fetchPokemonSpecies(detail.id);
 
-  const japaneseName = getJapaneseName(species.names);
-  const genus =
-    species.genera.find((g) => g.language.name === 'ja')?.genus ?? '不明';
+  const abilityDetails = await Promise.all(
+    detail.abilities.map((a) => fetchAbilityDetail(a.ability.url))
+  );
 
+  const japaneseName = getJapaneseName(species.names);
+  const genus = species.genera.find((g) => g.language.name === 'ja')?.genus ?? '不明';
   const types = detail.types.map((t) => t.type.name);
   const imageUrl = getPokemonImageUrl(detail.sprites);
 
-  const abilities = detail.abilities.map((a) => {
-    const jpName = abilityTranslations[a.ability.name] ?? a.ability.name;
+  const abilities: ProcessedAbility[] = detail.abilities.map((a, idx) => {
+    const abilityDetail = abilityDetails[idx];
+
+    let description =
+      abilityDetail.effect_entries.find((e) => e.language.name === 'ja')?.short_effect;
+
+    if (!description) {
+      description =
+        abilityDetail.effect_entries.find((e) => e.language.name === 'ja')?.effect;
+    }
+
+    if (!description) {
+      const flavorEntry = abilityDetail.flavor_text_entries.find((e) => e.language.name === 'ja');
+      if (flavorEntry) {
+        description = flavorEntry.flavor_text.replace(/\n|\f/g, ' ');
+      }
+    }
+
+    if (!description) {
+      description =
+        abilityDetail.effect_entries.find((e) => e.language.name === 'en')?.short_effect;
+    }
+
+    if (!description) {
+      description = '説明なし';
+    }
+
+    const jpName = getJapaneseName(abilityDetail.names);
+
     return {
       name: a.ability.name,
       japaneseName: jpName,
-      description: '',
+      description,
       isHidden: a.is_hidden,
     };
   });
@@ -198,3 +261,4 @@ export async function getProcessedPokemon(id: number): Promise<ProcessedPokemon>
     imageUrl,
   };
 }
+

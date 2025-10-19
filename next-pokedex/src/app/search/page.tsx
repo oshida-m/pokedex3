@@ -25,7 +25,7 @@ export default async function SearchPage({ searchParams }: Props) {
         <h1 className="text-3xl font-bold text-center mb-4">ポケモン検索</h1>
 
         {/* 説明文 */}
-        <p className="text-center mb-6 text-gray-600">ポケモンの名前で検索できます</p>
+        <p className="text-center mb-6 text-gray-600">ポケモンの名前で検索できます（日本語・英語対応）</p>
 
         {/* 検索フォームと説明文 */}
         <div className="max-w-md mx-auto mb-8">

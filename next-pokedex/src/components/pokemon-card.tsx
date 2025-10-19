@@ -5,7 +5,28 @@ import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ProcessedPokemon } from '@/lib/types';
-import { typeTranslations } from '@/lib/pokeapi';
+
+// ここに typeTranslations を直接定義する
+const typeTranslations: Record<string, string> = {
+  normal: 'ノーマル',
+  fire: 'ほのお',
+  water: 'みず',
+  grass: 'くさ',
+  electric: 'でんき',
+  ice: 'こおり',
+  fighting: 'かくとう',
+  poison: 'どく',
+  ground: 'じめん',
+  flying: 'ひこう',
+  psychic: 'エスパー',
+  bug: 'むし',
+  rock: 'いわ',
+  ghost: 'ゴースト',
+  dragon: 'ドラゴン',
+  dark: 'あく',
+  steel: 'はがね',
+  fairy: 'フェアリー',
+};
 
 interface PokemonCardProps {
   pokemon: ProcessedPokemon;
@@ -47,3 +68,4 @@ export function PokemonCard({ pokemon }: PokemonCardProps) {
     </Link>
   );
 }
+

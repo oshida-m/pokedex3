@@ -1,6 +1,6 @@
 // src/lib/types.ts
 
-// Pokemon API related types
+// ポケモンAPI関連の型定義群
 
 export interface PokemonListResponse {
   count: number;
@@ -44,7 +44,7 @@ export interface PokemonSprites {
   front_shiny: string | null;
   front_shiny_female: string | null;
   other: OtherSprites;
-  versions: Record<string, unknown>; // Complex nested structure
+  versions: Record<string, unknown>; // 複雑なネスト構造なのでunknownで保留
 }
 
 export interface OtherSprites {
@@ -124,7 +124,7 @@ export interface PokemonType {
   };
 }
 
-// Pokemon Species types for Japanese names
+// ポケモン種別詳細（日本語名など）
 export interface PokemonSpeciesDetail {
   id: number;
   name: string;
@@ -167,7 +167,7 @@ export interface PokemonSpeciesDetail {
     name: string;
     url: string;
   };
-  names: Name[];
+  names: Name[];  // 日本語名など多言語名
   flavor_text_entries: FlavorTextEntry[];
   form_descriptions: Record<string, unknown>[];
   genera: Genus[];
@@ -210,7 +210,7 @@ export interface Variety {
   };
 }
 
-// Ability details for descriptions
+// 特性詳細（説明など）
 export interface AbilityDetail {
   id: number;
   name: string;
@@ -219,10 +219,10 @@ export interface AbilityDetail {
     name: string;
     url: string;
   };
-  names: Name[];
-  effect_entries: EffectEntry[];
+  names: Name[];  // 特性名の多言語配列
+  effect_entries: EffectEntry[];  // 効果説明の配列
   effect_changes: Record<string, unknown>[];
-  flavor_text_entries: FlavorTextEntry[];
+  flavor_text_entries: FlavorTextEntry[]; // フレーバーテキスト説明
   pokemon: Record<string, unknown>[];
 }
 
@@ -235,7 +235,7 @@ export interface EffectEntry {
   };
 }
 
-// Type translation
+// タイプ詳細（日本語名等）
 export interface TypeDetail {
   id: number;
   name: string;
@@ -249,15 +249,15 @@ export interface TypeDetail {
   moves: Record<string, unknown>[];
 }
 
-// Custom types for our app
+// アプリケーション用カスタム型
 export interface ProcessedPokemon {
   id: number;
   name: string;
   japaneseName: string;
   genus: string;
   types: string[];
-  height: number; // in meters
-  weight: number; // in kilograms
+  height: number; // メートル単位
+  weight: number; // キログラム単位
   abilities: ProcessedAbility[];
   imageUrl: string;
 }
@@ -275,3 +275,4 @@ export interface PaginationInfo {
   hasNext: boolean;
   hasPrev: boolean;
 }
+
